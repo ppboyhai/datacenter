@@ -1,0 +1,5 @@
+比较好的地址：
+https://www.cnblogs.com/shizhongyang/p/8464876.html
+
+
+./vdb1/tools/mysql/bin/mysqld --user=mysql --basedir=/vdb1/tools/mysql/ --datadir=/vdb1/mysqldata/ --initialize

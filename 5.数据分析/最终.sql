@@ -1,0 +1,135 @@
+set hive.exec.dynamic.partition.mode=nonstrict;
+INSERT OVERWRITE TABLE dw_contact.wl_ods_order_analysis
+
+select  
+t1.order_no,--订单号
+t1.tracking_no,--快递单号
+t1.source_sn,--lbx单号
+t1.order_day,--订单日期
+t1.business_status_name,--订单当前状态
+t1.business_status_code,--订单状态编码
+t1.source,--订单来源编码
+t1.source_name,--订单来源名称
+---------------------商品品牌等表字段占位----------------------
+t4.brand_code,
+t4.brand_name,
+t4.mat_type_code,
+t4.mat_type_name,
+t4.mat_length,
+t4.mat_width,
+t4.mat_height,
+t4.mat_volume,
+t4.mat_weight,
+---------------------销售收入订单金额字段取消----------
+t1.operation_center_code,--始发仓编码
+t1.operation_center_name,--始发仓名称
+NULL transfer_center_code,--中转仓编码
+NULL transfer_center_name,--中转仓名称
+t1.belong_center_code,--所属仓编码
+t1.belong_center_name,--所属仓名称
+t1.order_date,--客户订单时间
+---------------------里程碑 时间字段 占位-----------
+t6.xf_plan ,--下发系统计划
+t6.xf_fact, --下发系统实际
+t6.pc_plan, --配车计划
+t6.pc_fact, --配车实际
+t6.ck_plan, --出库计划
+t6.ck_fact, --出库实际
+t6.zr_plan, --中转入库计划
+t6.zr_fact, --中转入库实际
+t6.zc_plan, --中转出库计划
+t6.zc_fact, --中转出库实际
+t6.sr_plan, --所属入库计划
+t6.sr_fact, --所属入库实际
+t6.sc_plan, --所属出库计划
+t6.sc_fact, --所属出库实际
+t6.rq_plan, --网点入库计划
+t6.rq_fact, --网点入库实际
+t6.w2_plan, --网点出库计划
+t6.w2_fact, --网点出库实际
+t6.qs_plan, --用户签收计划
+t6.qs_fact, --用户签收实际
+t6.tz_plan, --安装时间计划
+t6.tz_fact,  --安装时间实际
+t6.appointment_date, --预约时间
+---------------------收货人信息字段 占位------------
+t5.person_province,
+t5.person_city,
+t5.person_area,
+t5.person_name,
+t5.person_mobile,
+----------------------评价、投诉、咨询等字段占位开始--------
+t8.early_party_name, --初判责任方
+t8.early_center_name, --初判责任中心
+t8.complain_date,    --评价时间
+t8.client_score,	--评价分数
+t8.first_problem_level1_name,--用户差评初判大类
+t8.first_problem_level2_name,--用户差评初判小磊
+t8.res_pro_big_in_name,--差评判责大类
+t8.res_pro_small_in_name,--差评判责小类
+t8.complain_content,--评价内容
+
+----------------------评价、投诉、咨询等字段占位结束--------
+t1.service_class,--是否需要安装
+(case when  t6.appointment_date !='null' then 1 else 0  end) is_appointment,--是否预约时间
+NULL is_transfer,--是否中转
+t1.delivery_method,--配送方式，是否经网点
+t1.order_type,--订单类型
+(case when  t8.client_score !=null then 1 else 0  end) is_complain, --是否有评价
+NULL is_direct_order--是否正向订单
+
+from l_wl_ods_order t1 
+left join --关联订单明细
+(select t2.order_no,
+max(t2.brand_code) as brand_code ,--品牌ID
+max(t2.brand_name) as brand_name, --品牌名称
+max(t2.mat_type_code) as mat_type_code, --品类ID
+max(t2.mat_type_name) as mat_type_name, --品类名称
+sum(cast(t2.mat_length as decimal(9,2))) as mat_length, --长度
+sum(cast(t2.mat_width as decimal(9,2))) as mat_width, --宽度
+sum(cast(t2.mat_height as decimal(9,2))) as mat_height, --高度
+sum(cast(t2.mat_volume as decimal(9,2)))  as mat_volume, --体积
+sum(cast(t2.mat_weight as decimal(9,2))) as mat_weight --重量
+ from l_wl_ods_order_detail t2 group by t2.order_no) t4
+ on t1.order_no=t4.order_no
+
+----关联联系人表  
+left join  (select a.order_no   ,a.person_province ,a.person_city,a.person_area,a.person_name,a.person_mobile from l_wl_ods_order_person_info a where a.person_info_type=1) t5
+on t1.order_no=t5.order_no
+--  关联差评评价信息表
+left join (select  c.rrs_logistics_id ,max(c.early_party_name)  early_party_name,max(c.early_center_name)  early_center_name, max(c.complain_date) complain_date,max(c.client_score) client_score ,max(c.first_problem_level1_name) first_problem_level1_name ,max(c.first_problem_level2_name) first_problem_level2_name,max(c.res_pro_big_in_name) res_pro_big_in_name,max(c.res_pro_small_in_name) res_pro_small_in_name,max(c.complain_content) complain_content from l_wl_sqm_vw_services_pj_1169 c
+
+group by rrs_logistics_id) t8
+on t1.order_no=t8.rrs_logistics_id
+-- 关联好评信息表
+
+
+-----关联里程碑表  
+left join 
+(select t3.order_no   ,
+max(case when  t3.milestone_code ='XF' then t3.plan_start_date  end) xf_plan ,--下发系统计划
+max(case when  t3.milestone_code ='XF' then t3.fact_start_date  end) xf_fact, --下发系统实际
+max(case when  t3.milestone_code ='PC' then t3.plan_start_date  end) pc_plan, --配车计划
+max(case when  t3.milestone_code ='PC' then t3.fact_start_date  end) pc_fact, --配车实际
+max(case when  t3.milestone_code ='CK' then t3.plan_start_date  end) ck_plan, --出库计划
+max(case when  t3.milestone_code ='CK' then t3.fact_start_date  end) ck_fact, --出库实际
+max(case when  t3.milestone_code ='ZR' then t3.plan_start_date  end) zr_plan, --中转入库计划
+max(case when  t3.milestone_code ='ZR' then t3.fact_start_date  end) zr_fact, --中转入库实际
+max(case when  t3.milestone_code ='ZC' then t3.plan_start_date  end) zc_plan, --中转出库计划
+max(case when  t3.milestone_code ='ZC' then t3.fact_start_date  end) zc_fact, --中转出库实际
+max(case when  t3.milestone_code ='SR' then t3.plan_start_date  end) sr_plan, --所属入库计划
+max(case when  t3.milestone_code ='SR' then t3.fact_start_date  end) sr_fact, --所属入库实际
+
+max(case when  t3.milestone_code ='SC' then t3.plan_start_date  end) sc_plan, --所属出库计划
+max(case when  t3.milestone_code ='SC' then t3.fact_start_date  end) sc_fact, --所属出库实际
+max(case when  t3.milestone_code ='RQ' then t3.plan_start_date  end) rq_plan, --网点入库计划
+max(case when  t3.milestone_code ='RQ' then t3.fact_start_date  end) rq_fact, --网点入库实际
+max(case when  t3.milestone_code ='W2' then t3.plan_start_date  end) w2_plan, --网点出库计划
+max(case when  t3.milestone_code ='W2' then t3.fact_start_date  end) w2_fact, --网点出库实际
+max(case when  t3.milestone_code ='QS' then t3.plan_start_date  end) qs_plan, --用户签收计划
+max(case when  t3.milestone_code ='QS' then t3.fact_start_date  end) qs_fact, --用户签收实际
+max(case when  t3.milestone_code ='TZ' then t3.plan_start_date  end) tz_plan, --安装时间计划
+max(case when  t3.milestone_code ='TZ' then t3.fact_start_date  end) tz_fact,  --安装时间实际
+max(t3.appointment_date) appointment_date --预约时间 
+from l_wl_ods_order_milestone t3  
+group by t3.order_no) t6  on t1.order_no=t6.order_no;

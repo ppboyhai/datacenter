@@ -1,0 +1,26 @@
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.xf_plan is null  --用户已签收，下发系统计划时间为null
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.xf_fact is null  --用户已签收，下发系统实际时间为null 
+
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.pc_plan is null  --用户已签收，开始配车计划时间为null 
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.pc_fact is null  --用户已签收，开始配车实际时间为null 
+
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.ck_plan is null  --用户已签收，出库计划时间为null 
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.ck_fact is null  --用户已签收，出库实际时间为null 
+
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.zr_plan is null  --用户已签收，中转入库计划时间为null
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.zr_fact is null  --用户已签收，中转入库实际时间为null
+
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.sr_plan is null  --用户已签收，所属入库计划时间为null
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.sr_fact is null  --用户已签收，所属入库实际时间为null
+
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.sc_plan is null  --用户已签收，所属出库计划时间为null
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.sc_fact is null  --用户已签收，所属出库实际时间为null
+
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.rq_plan is null  --用户已签收，网点入库计划时间为null
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.rq_fact is null  --用户已签收，网点入库实际时间为null
+
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.w2_plan is null  --用户已签收，网点出库计划时间为null
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.w2_fact is null  --用户已签收，网点出库实际时间为null
+
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.qs_plan is null  --用户已签收，用户签收计划时间为null
+select count(1) from  wl_ods_order_analysis_no_complain t where t.business_status_name='用户已签收' and t.qs_fact is null  --用户已签收，用户签收实际时间为null
